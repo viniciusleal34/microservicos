@@ -1,15 +1,15 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using AutoMapper;
+using GeekShopping.ProductAPI.Config;
+using GeekShopping.ProductAPI.Model.Context;
+using GeekShopping.ProductAPI.Repositories;
+using GeekShopping.ProductAPI.Repositories.interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
 namespace GeekShopping.ProductAPI
@@ -26,6 +26,18 @@ namespace GeekShopping.ProductAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var connection = Configuration["MySQLConnection:MySQLConnectionString"];
+
+            //Configuration MySql
+            services.AddDbContext<MySQLContext>(options => options.
+                UseMySql(connection, new MySqlServerVersion(new Version(8,0,5))));
+            
+            //Configuration Mapper
+            IMapper mapper = MappingConfig.RegisterMaps().CreateMapper();
+            services.AddSingleton(mapper);
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddScoped<IProductRepository, ProductRepository>();
+            
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
